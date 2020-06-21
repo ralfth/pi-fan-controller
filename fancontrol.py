@@ -2,6 +2,7 @@
 
 import subprocess
 import time
+import re
 
 from gpiozero import OutputDevice
 
@@ -23,11 +24,12 @@ def get_temp():
     Returns:
         float: The core temperature in degrees Celsius.
     """
-    output = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True)
+    output = subprocess.run(['landscape-sysinfo', '--sysinfo-plugins=Temperature'], capture_output=True)
     temp_str = output.stdout.decode()
-    try:
-        return float(temp_str.split('=')[1].split('\'')[0])
-    except (IndexError, ValueError):
+    m = re.match(".*Temperature: (.*?) C", temp_str)
+    if m:
+        return float(m.group(1))
+    else:
         raise RuntimeError('Could not parse temperature output.')
 
 
